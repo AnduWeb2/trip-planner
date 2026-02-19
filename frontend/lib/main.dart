@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
     const accentColor = Color(0xFF5B85AA);
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Trip Planner',
       theme: ThemeData(
         scaffoldBackgroundColor: backgroundColor,
