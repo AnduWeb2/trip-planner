@@ -10,4 +10,5 @@ urlpatterns = [
     path('api/token/verify/', TokenVerifyView.as_view(), name="token_verify"),
     path('api/register/', views.register, name="user_register"),
     path('api/logout/', views.logout, name="user_logout"),
+    path('api/search-flight/', views.search_flight, name="search_flight"),
 ]
