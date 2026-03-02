@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'dart:ui';
+import 'flight_availability_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -271,7 +272,14 @@ class _HomePageState extends State<HomePage> {
                     icon: Icons.flight,
                     title: 'Flight',
                     subtitle: 'Check availability',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const FlightAvailabilityPage(),
+                        ),
+                      );
+                    },
                   ),
                   _buildActionCard(
                     icon: Icons.hotel,
