@@ -1,29 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-const Map<String, String> kAirlineNames = {
-  'LH': 'Lufthansa',
-  'RO': 'Tarom',
-  'AF': 'Air France',
-  'KL': 'KLM',
-  'BA': 'British Airways',
-  'W6': 'Wizz Air',
-  'FR': 'Ryanair',
-  'AZ': 'ITA Airways',
-  'TK': 'Turkish Airlines',
-  'OS': 'Austrian Airlines',
-  'LO': 'LOT Polish Airlines',
-  'SU': 'Aeroflot',
-  'QR': 'Qatar Airways',
-  'EK': 'Emirates',
-  'UA': 'United Airlines',
-  'AA': 'American Airlines',
-  'DL': 'Delta Air Lines',
-  'LX': 'SWISS',
-  'IB': 'Iberia',
-  'VY': 'Vueling',
-};
+import 'flight_confirm_page.dart';
 
 class FlightResultsPage extends StatelessWidget {
   final List flights;
@@ -36,21 +14,6 @@ class FlightResultsPage extends StatelessWidget {
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       debugPrint('Could not launch $url');
-    }
-  }
-
-  String _formatDateTime(String raw) {
-    if (raw.isEmpty) return '';
-    try {
-      final dt = DateTime.parse(raw);
-      final y = dt.year.toString().padLeft(4, '0');
-      final m = dt.month.toString().padLeft(2, '0');
-      final d = dt.day.toString().padLeft(2, '0');
-      final h = dt.hour.toString().padLeft(2, '0');
-      final min = dt.minute.toString().padLeft(2, '0');
-      return '$y-$m-$d $h:$min';
-    } catch (_) {
-      return raw;
     }
   }
 
@@ -72,20 +35,15 @@ class FlightResultsPage extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 16),
               itemBuilder: (context, idx) {
                 final flight = flights[idx];
-                final segments = flight['itineraries']?[0]['segments'] as List? ?? [];
-                final firstSeg = segments.isNotEmpty ? segments.first : null;
-                final lastSeg = segments.isNotEmpty ? segments.last : null;
-                final carrierCode = firstSeg?['carrierCode'] as String? ?? '';
-                final airlineName = flight['airline_name'] as String? ?? (kAirlineNames[carrierCode] ?? carrierCode);
-                final origin = firstSeg?['departure']?['iataCode'] ?? '';
-                final destination = lastSeg?['arrival']?['iataCode'] ?? '';
-                final departureRaw = firstSeg?['departure']?['at']?.toString() ?? '';
-                final arrivalRaw = lastSeg?['arrival']?['at']?.toString() ?? '';
-                final departure = _formatDateTime(departureRaw);
-                final arrival = _formatDateTime(arrivalRaw);
+                final display = (flight['display'] as Map?) ?? {};
+                final airlineName = flight['airline_name'] as String? ?? '';
+                final origin = display['origin'] as String? ?? '';
+                final destination = display['destination'] as String? ?? '';
+                final departure = display['departure'] as String? ?? '';
+                final arrival = display['arrival'] as String? ?? '';
                 final price = flight['price']?['total'];
                 final currency = flight['price']?['currency'] ?? 'EUR';
-                final stops = segments.length - 1;
+                final stops = display['stops'] as int? ?? 0;
 
                 return Card(
                   elevation: 2,
@@ -136,6 +94,26 @@ class FlightResultsPage extends StatelessWidget {
                           const SizedBox(height: 4),
                           _BookButton(label: 'Check-in', onTap: () => _launchUrl(flight['checkin_link'])),
                         ],
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FlightConfirmPage(flight: Map<String, dynamic>.from(flight)),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF5B85AA),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            child: Text('Select flight', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                          ),
+                        ),
                       ],
                     ),
                   ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
+import '../widgets/airport_search_field.dart';
 import 'flight_results_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -16,9 +17,9 @@ class FlightAvailabilityPage extends StatefulWidget {
 
 class _FlightAvailabilityPageState extends State<FlightAvailabilityPage> {
   final storage = const FlutterSecureStorage();
-  final TextEditingController originController = TextEditingController();
-  final TextEditingController destinationController = TextEditingController();
   final TextEditingController adultsController = TextEditingController(text: '1');
+  String? _originCode;
+  String? _destinationCode;
   DateTime? departureDate;
   DateTime? returnDate;
   String tripType = 'oneway';
@@ -26,8 +27,6 @@ class _FlightAvailabilityPageState extends State<FlightAvailabilityPage> {
 
   @override
   void dispose() {
-    originController.dispose();
-    destinationController.dispose();
     adultsController.dispose();
     super.dispose();
   }
@@ -55,12 +54,12 @@ class _FlightAvailabilityPageState extends State<FlightAvailabilityPage> {
   }
 
   Future<void> _submit() async {
-    final origin = originController.text.trim();
-    final destination = destinationController.text.trim();
+    final origin = _originCode ?? '';
+    final destination = _destinationCode ?? '';
     final adults = adultsController.text.trim();
 
     if (origin.isEmpty || destination.isEmpty) {
-      _showError('Validation', 'Please enter origin and destination.');
+      _showError('Validation', 'Please select an origin and destination airport.');
       return;
     }
     if (departureDate == null) {
@@ -199,18 +198,18 @@ class _FlightAvailabilityPageState extends State<FlightAvailabilityPage> {
           children: [
             Text('Search Flights', style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700)),
             const SizedBox(height: 24),
-            CustomTextField(
-              controller: originController,
+            AirportSearchField(
               label: 'Origin',
-              hint: 'e.g. OTP',
               prefixIcon: Icons.flight_takeoff,
+              onSelected: (code, _) => setState(() => _originCode = code),
+              onCleared: () => setState(() => _originCode = null),
             ),
             const SizedBox(height: 16),
-            CustomTextField(
-              controller: destinationController,
+            AirportSearchField(
               label: 'Destination',
-              hint: 'e.g. MAD',
               prefixIcon: Icons.flight_land,
+              onSelected: (code, _) => setState(() => _destinationCode = code),
+              onCleared: () => setState(() => _destinationCode = null),
             ),
             const SizedBox(height: 16),
             Row(
