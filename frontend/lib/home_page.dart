@@ -138,9 +138,9 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Trip Planner',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        title: Image.asset(
+          'assets/images/logo_fara_scris_3.png',
+          height: 100,
         ),
         backgroundColor: const Color(0xFF5B85AA),
         elevation: 4,
@@ -183,7 +183,8 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Welcome Section (glassy with gradient)
-              ClipRRect(
+              Center(
+                child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
@@ -236,7 +237,8 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              ), // Center
+              const SizedBox(height: 48),
 
               // Quick Actions
               Text(

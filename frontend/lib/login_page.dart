@@ -154,6 +154,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
@@ -161,25 +162,13 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo or Header
+                // Logo
                 Container(
-                   constraints: const BoxConstraints.tightFor(width: 80, height: 80),
-                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF5B85AA), Color(0xFF7BA5C9)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                         color: const Color(0xFF5B85AA).withValues(alpha: 0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
+                  color: Colors.white,
+                  child: Image.asset(
+                    'assets/images/logo_cu_scris.png',
+                    width: 180,
                   ),
-                  child: const Icon(Icons.flight, color: Colors.white, size: 40),
                 ),
                 const SizedBox(height: 32),
 
