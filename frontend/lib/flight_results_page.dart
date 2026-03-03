@@ -27,12 +27,30 @@ const Map<String, String> kAirlineNames = {
 
 class FlightResultsPage extends StatelessWidget {
   final List flights;
-  const FlightResultsPage({super.key, required this.flights});
+  const FlightResultsPage({
+    super.key,
+    required this.flights,
+  });
 
   Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       debugPrint('Could not launch $url');
+    }
+  }
+
+  String _formatDateTime(String raw) {
+    if (raw.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(raw);
+      final y = dt.year.toString().padLeft(4, '0');
+      final m = dt.month.toString().padLeft(2, '0');
+      final d = dt.day.toString().padLeft(2, '0');
+      final h = dt.hour.toString().padLeft(2, '0');
+      final min = dt.minute.toString().padLeft(2, '0');
+      return '$y-$m-$d $h:$min';
+    } catch (_) {
+      return raw;
     }
   }
 
@@ -58,11 +76,13 @@ class FlightResultsPage extends StatelessWidget {
                 final firstSeg = segments.isNotEmpty ? segments.first : null;
                 final lastSeg = segments.isNotEmpty ? segments.last : null;
                 final carrierCode = firstSeg?['carrierCode'] as String? ?? '';
-                final airlineName = kAirlineNames[carrierCode] ?? carrierCode;
+                final airlineName = flight['airline_name'] as String? ?? (kAirlineNames[carrierCode] ?? carrierCode);
                 final origin = firstSeg?['departure']?['iataCode'] ?? '';
                 final destination = lastSeg?['arrival']?['iataCode'] ?? '';
-                final departure = firstSeg?['departure']?['at']?.toString().substring(0, 16) ?? '';
-                final arrival = lastSeg?['arrival']?['at']?.toString().substring(0, 16) ?? '';
+                final departureRaw = firstSeg?['departure']?['at']?.toString() ?? '';
+                final arrivalRaw = lastSeg?['arrival']?['at']?.toString() ?? '';
+                final departure = _formatDateTime(departureRaw);
+                final arrival = _formatDateTime(arrivalRaw);
                 final price = flight['price']?['total'];
                 final currency = flight['price']?['currency'] ?? 'EUR';
                 final stops = segments.length - 1;
@@ -104,30 +124,18 @@ class FlightResultsPage extends StatelessWidget {
                             'Price: $price $currency',
                             style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.w700, color: const Color(0xFF5B85AA)),
                           ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Estimated price — final price on airline site',
+                            style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey[600]),
+                          ),
                         ],
                         const Divider(height: 20),
-                        Text('Book on:', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.grey[600])),
-                        const SizedBox(height: 4),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: [
-                            if (flight['tarom_direct_booking_link'] != null)
-                              _BookButton(label: 'Tarom', onTap: () => _launchUrl(flight['tarom_direct_booking_link'])),
-                            if (flight['british_airways_direct_booking_link'] != null)
-                              _BookButton(label: 'British Airways', onTap: () => _launchUrl(flight['british_airways_direct_booking_link'])),
-                            if (flight['airline_booking_link'] != null &&
-                                flight['tarom_direct_booking_link'] == null &&
-                                flight['british_airways_direct_booking_link'] == null)
-                              _BookButton(label: airlineName, onTap: () => _launchUrl(flight['airline_booking_link'])),
-                            if (flight['google_flights_link'] != null)
-                              _BookButton(label: 'Google Flights', onTap: () => _launchUrl(flight['google_flights_link'])),
-                            if (flight['skyscanner_link'] != null)
-                              _BookButton(label: 'Skyscanner', onTap: () => _launchUrl(flight['skyscanner_link'])),
-                            if (flight['expedia_link'] != null)
-                              _BookButton(label: 'Expedia', onTap: () => _launchUrl(flight['expedia_link'])),
-                          ],
-                        ),
+                        if (flight['checkin_link'] != null) ...[
+                          Text('Check-in:', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.grey[600])),
+                          const SizedBox(height: 4),
+                          _BookButton(label: 'Check-in', onTap: () => _launchUrl(flight['checkin_link'])),
+                        ],
                       ],
                     ),
                   ),

@@ -4,6 +4,7 @@ import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 import 'flight_results_page.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dart:convert';
 
 class FlightAvailabilityPage extends StatefulWidget {
@@ -14,6 +15,7 @@ class FlightAvailabilityPage extends StatefulWidget {
 }
 
 class _FlightAvailabilityPageState extends State<FlightAvailabilityPage> {
+  final storage = const FlutterSecureStorage();
   final TextEditingController originController = TextEditingController();
   final TextEditingController destinationController = TextEditingController();
   final TextEditingController adultsController = TextEditingController(text: '1');
@@ -86,14 +88,37 @@ class _FlightAvailabilityPageState extends State<FlightAvailabilityPage> {
         queryParams['arrivalDate'] = formatDate(returnDate!);
       }
       final uri = Uri.parse('http://127.0.0.1:8000/user/api/search-flight/').replace(queryParameters: queryParams);
-      final response = await http.get(uri);
+      Future<http.Response> sendRequest(String? token) {
+        return http.get(
+          uri,
+          headers: {
+            if (token != null) 'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        );
+      }
+
+      String? token = await storage.read(key: 'access_token');
+      http.Response response = await sendRequest(token);
+
+      if (response.statusCode == 401) {
+        final refreshed = await _refreshAccessToken();
+        if (refreshed != null) {
+          token = refreshed;
+          response = await sendRequest(token);
+        }
+      }
+
       if (response.statusCode == 200) {
-        final List flights = jsonDecode(response.body);
+        final body = jsonDecode(response.body);
+        final List flights = body is List ? body : (body['offers'] ?? []);
         if (mounted) {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FlightResultsPage(flights: flights),
+              builder: (context) => FlightResultsPage(
+                flights: flights,
+              ),
             ),
           );
         }
@@ -106,6 +131,8 @@ class _FlightAvailabilityPageState extends State<FlightAvailabilityPage> {
             if (body.containsKey('details') && body['details'] != null) {
               errorMsg += '\n\nDetails: ${body['details']}';
             }
+          } else if (body is Map && body.containsKey('detail')) {
+            errorMsg = body['detail'].toString();
           }
         } catch (_) {}
         _showError('Error (${response.statusCode})', errorMsg);
@@ -115,6 +142,30 @@ class _FlightAvailabilityPageState extends State<FlightAvailabilityPage> {
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
+  }
+
+  Future<String?> _refreshAccessToken() async {
+    try {
+      final refreshToken = await storage.read(key: 'refresh_token');
+      if (refreshToken == null) return null;
+
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:8000/user/api/token/refresh/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refresh': refreshToken}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final newAccess = data['access'] as String?;
+        if (newAccess != null) {
+          await storage.write(key: 'access_token', value: newAccess);
+          return newAccess;
+        }
+      }
+    } catch (_) {}
+
+    return null;
   }
 
   void _showError(String title, String message) {
