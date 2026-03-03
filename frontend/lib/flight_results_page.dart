@@ -84,7 +84,7 @@ class FlightResultsPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Estimated price — final price on airline site',
+                            'Estimated price — select flight to see final price',
                             style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey[600]),
                           ),
                         ],
