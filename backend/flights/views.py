@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from amadeus import Client, ResponseError, Location
 
 
-# View pentru căutare zbor București-Madrid cu Amadeus API
+
 
 def _get_amadeus_client():
 	return Client(
@@ -70,12 +70,49 @@ def select_destination(request, param):
 
 @api_view(['GET'])
 def search_flight(request):
-	origin = request.GET.get('origin', 'OTP')
-	destination = request.GET.get('destination', 'MAD')
-	departure_date = request.GET.get('departureDate', '2026-03-10')
+	origin = request.GET.get('origin')
+	destination = request.GET.get('destination')
+	departure_date = request.GET.get('departureDate')
 	trip_type = request.GET.get('trip_type', 'oneway')
 	arrival_date = request.GET.get('arrivalDate')
 	adults = request.GET.get('adults', '1')
+
+	missing = []
+	if not origin:
+		missing.append('origin')
+	if not destination:
+		missing.append('destination')
+	if not departure_date:
+		missing.append('departureDate')
+	if trip_type == 'round' and not arrival_date:
+		missing.append('arrivalDate')
+	if missing:
+		return Response(
+			{'error': 'Missing required query parameters', 'missing': missing},
+			status=400
+		)
+
+	if trip_type not in {'oneway', 'round'}:
+		return Response(
+			{'error': 'Invalid trip_type', 'allowed': ['oneway', 'round']},
+			status=400
+		)
+
+	try:
+		adults_int = int(adults)
+		if adults_int < 1:
+			raise ValueError('adults must be >= 1')
+	except (TypeError, ValueError):
+		return Response({'error': 'Invalid adults (must be an integer >= 1)'}, status=400)
+
+	# Basic ISO date validation (YYYY-MM-DD)
+	from datetime import date
+	try:
+		date.fromisoformat(departure_date)
+		if arrival_date:
+			date.fromisoformat(arrival_date)
+	except ValueError:
+		return Response({'error': 'Invalid date format (expected YYYY-MM-DD)'}, status=400)
 
 	try:
 		amadeus = _get_amadeus_client()
@@ -83,7 +120,7 @@ def search_flight(request):
 			'originLocationCode': origin,
 			'destinationLocationCode': destination,
 			'departureDate': departure_date,
-			'adults': int(adults),
+			'adults': adults_int,
 			'nonStop': 'false',
 			'max': 3
 		}

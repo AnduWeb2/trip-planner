@@ -125,13 +125,28 @@ class _FlightAvailabilityPageState extends State<FlightAvailabilityPage> {
         String errorMsg = 'Failed to fetch flights.';
         try {
           final body = jsonDecode(response.body);
-          if (body is Map && body.containsKey('error')) {
-            errorMsg = body['error'].toString();
-            if (body.containsKey('details') && body['details'] != null) {
-              errorMsg += '\n\nDetails: ${body['details']}';
+          if (body is Map) {
+            // Backend validation payload: { error: "...", missing: [...] }
+            if (response.statusCode == 400 && body['missing'] is List) {
+              final missing = (body['missing'] as List).map((e) => e.toString()).toList();
+              const labels = {
+                'origin': 'Origin',
+                'destination': 'Destination',
+                'departureDate': 'Departure Date',
+                'arrivalDate': 'Return Date',
+                'trip_type': 'Trip Type',
+                'adults': 'Adults',
+              };
+              final missingLabels = missing.map((k) => labels[k] ?? k).toList();
+              errorMsg = 'Please provide: ${missingLabels.join(', ')}.';
+            } else if (body.containsKey('error')) {
+              errorMsg = body['error'].toString();
+              if (body.containsKey('details') && body['details'] != null) {
+                errorMsg += '\n\nDetails: ${body['details']}';
+              }
+            } else if (body.containsKey('detail')) {
+              errorMsg = body['detail'].toString();
             }
-          } else if (body is Map && body.containsKey('detail')) {
-            errorMsg = body['detail'].toString();
           }
         } catch (_) {}
         _showError('Error (${response.statusCode})', errorMsg);
