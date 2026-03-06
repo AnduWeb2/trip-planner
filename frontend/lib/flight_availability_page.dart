@@ -202,6 +202,7 @@ class _FlightAvailabilityPageState extends State<FlightAvailabilityPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Flight Availability', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         backgroundColor: const Color(0xFF5B85AA),
         elevation: 4,

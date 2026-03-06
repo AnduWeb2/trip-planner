@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'login_page.dart';
 import 'register_page.dart';
-import 'home_page.dart';
+import 'main_shell.dart';
+import 'manage_profile_page.dart';
+import 'add_traveler_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -87,6 +89,9 @@ class MyApp extends StatelessWidget {
             color: const Color(0xFF666666),
           ),
         ),
+        snackBarTheme: const SnackBarThemeData(
+          behavior: SnackBarBehavior.floating,
+        ),
         cardTheme: CardThemeData(
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -99,7 +104,9 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
-        '/home': (context) => const HomePage(),
+        '/home': (context) => const MainShell(),
+        '/manage-profile': (context) => const ManageProfilePage(),
+        '/add-traveler': (context) => const AddTravelerPage(),
       },
     );
   }
