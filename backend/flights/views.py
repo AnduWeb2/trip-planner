@@ -247,3 +247,4 @@ def book_flight(request):
 		return Response({'error': str(error), 'details': details}, status=400)
 	except Exception as e:
 		return Response({'error': str(e)}, status=500)
+

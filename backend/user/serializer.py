@@ -1,9 +1,18 @@
+import pycountry
 from rest_framework import serializers
-from .models import User
+from .models import User, TravelerProfile
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework.exceptions import ValidationError
+
+VALID_NATIONALITY = {
+    country.alpha_2 for country in pycountry.countries
+}
+VALID_PHONE_CODE = {
+    country.numeric for country in pycountry.countries
+}
+
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -43,4 +52,23 @@ class LogoutSerializer(serializers.Serializer):
     def save(self, **kwargs):
         RefreshToken(self.token).blacklist()
     
+class TravelerProfileSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = TravelerProfile
+        fields = ('id','first_name', 'last_name','date_of_birth','gender','phone_country_code','phone_number','nationality')
 
+    def validate_phone_country_code(self, value):
+        if value not in VALID_PHONE_CODE:
+            raise serializers.ValidationError("Invalid phone prefix")
+        return value
+    
+    def validate_nationality(self, attrs):
+        if attrs not in VALID_NATIONALITY:
+            raise serializers.ValidationError("Invalid Nationality")
+        return attrs
+    
+    def create(self, validated_data):
+        traveler  = TravelerProfile.objects.create(**validated_data)
+
+        return traveler
