@@ -20,3 +20,6 @@ class TravelerProfile(models.Model):
     phone_country_code = models.CharField(max_length=4)
     phone_number = models.CharField(max_length=16)
     nationality = models.CharField(max_length=2)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.first_name} {self.last_name}"
